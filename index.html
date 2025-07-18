@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Genesis One Swarm BETA</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+/* ===== minimalist dark theme ===== */
+html,body{margin:0;height:100%;background:#000;color:#fff;
+          font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+*{box-sizing:border-box}
+
+/* ===== matrix canvas ===== */
+#matrix{position:fixed;inset:0;z-index:0;background:#000;pointer-events:none}
+
+/* ===== layout ===== */
+.wrapper{position:relative;z-index:1;
+         display:flex;flex-direction:column;justify-content:center;
+         align-items:center;gap:2rem;min-height:100vh}
+
+/* clock + title */
+#datetime{font-size:1.5rem;font-weight:600;text-align:center}
+#title  {font-size:2.3rem;font-weight:800;letter-spacing:1.5px;text-align:center;margin-top:-1rem}
+
+/* board wrapper */
+#board{display:flex;flex-direction:column;gap:1.2rem;width:90%;max-width:900px}
+
+/* 4-column grid */
+.grid{display:grid;
+      grid-template-columns:2.5rem 1fr 1fr 1fr;
+      align-items:center;column-gap:1rem}
+
+/* header row (first cell blank) */
+.header{font-size:1.1rem;font-weight:600;opacity:.75;text-shadow:0 0 4px rgba(0,0,0,.6)}
+.header span{text-align:center}
+
+/* data rows */
+.row{font-size:1.8rem;font-weight:700;letter-spacing:.5px}
+.row span{text-shadow:0 0 5px rgba(0,0,0,.7)}
+
+/* spacing between rows */
+.row + .row{margin-top:.6rem}
+
+/* align columns */
+.icon,.name,.hash,.best{text-align:center}
+
+/* ===== footer ===== */
+#footer{position:fixed;bottom:10px;left:0;right:0;z-index:1;
+        text-align:center;font-size:.8rem;opacity:.8;text-shadow:0 0 4px #000}
+
+/* responsive */
+@media(max-width:600px){
+  .row{font-size:1.3rem}
+  #title{font-size:1.7rem}
+}
+</style>
+</head>
+
+<body>
+<canvas id="matrix"></canvas>
+
+<div class="wrapper">
+    <div id="datetime">Loading time…</div>
+    <div id="title">Swarm&nbsp;ALPHA’s&nbsp;TOP&nbsp;Ranking</div>
+
+    <div id="board">
+        <div class="header grid">
+            <span class="icon"></span>
+            <span class="name">MEMBER</span>
+            <span class="hash">HASHRATE</span>
+            <span class="best">BEST&nbsp;SHARE</span>
+        </div>
+        <div id="workers"></div>
+    </div>
+</div>
+
+<!-- new footer -->
+<div id="footer">Genesis&nbsp;One&nbsp;Mining&nbsp;©&nbsp;2025</div>
+
+<script>
+/* ===== CONFIG ===== */
+const ADDRESS  = 'bc1qj77y5emr5xv6jrqn940wn0uk58afya82je7uu5';
+const CK_URL   = `https://solo.ckpool.org/users/${ADDRESS}`;
+const PROXY    = 'https://corsproxy.io/?';
+const FETCH_URL= PROXY + encodeURIComponent(CK_URL);
+
+/* ===== UTILS ===== */
+function toNumber(str='0'){
+  let n=parseFloat(str);
+  if(str.includes('P'))n*=1e15;else if(str.includes('T'))n*=1e12;
+  else if(str.includes('G'))n*=1e9;else if(str.includes('M'))n*=1e6;
+  else if(str.includes('K'))n*=1e3;
+  return n;
+}
+
+/* ===== CLOCK ===== */
+function tickClock(){
+  const now=new Date();
+  document.getElementById('datetime').textContent=
+    now.toLocaleString(undefined,{
+      weekday:'short',year:'numeric',month:'long',day:'numeric',
+      hour:'2-digit',minute:'2-digit',second:'2-digit'
+    });
+}
+tickClock();setInterval(tickClock,1000);
+
+/* ===== FETCH + RENDER WORKERS ===== */
+async function refreshStats(){
+  try{
+    const res=await fetch(FETCH_URL);
+    if(!res.ok)throw new Error(res.statusText);
+    const data=await res.json?await res.json():JSON.parse(await res.text());
+    const workers=data.worker??[];
+
+    workers.sort((a,b)=>b.bestever-a.bestever);
+
+    const wrap=document.getElementById('workers');
+    wrap.innerHTML='';
+
+    workers.forEach(w=>{
+      const id=w.workername.split('.')[1]??w.workername;
+      const hashrate=w.hashrate1m;
+      const best=w.bestever.toLocaleString();
+      const hNum=toNumber(hashrate);
+      const icon=hNum===0?'🔴':hNum<0.5e12?'🟡':'🟢';
+
+      const row=document.createElement('div');
+      row.className='row grid';
+      row.innerHTML=`
+        <span class="icon">${icon}</span>
+        <span class="name">${id}</span>
+        <span class="hash">${hashrate}</span>
+        <span class="best">${best}</span>`;
+      wrap.appendChild(row);
+    });
+  }catch(e){
+    console.error(e);
+    document.getElementById('workers').textContent='Failed to load CKPool data.';
+  }
+}
+refreshStats();setInterval(refreshStats,5000);
+
+/* ===== MATRIX RAIN (green on weekdays, orange on weekends) ===== */
+const canvas=document.getElementById('matrix');
+const ctx=canvas.getContext('2d');
+let w,h,font=14,cols,drops,
+chars='アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポ0123456789ABCDEF';
+
+function resize(){
+  w=canvas.width=window.innerWidth;
+  h=canvas.height=window.innerHeight;
+  cols=Math.floor(w/font);
+  drops=Array(cols).fill(1);
+}
+resize();window.addEventListener('resize',resize);
+
+function draw(){
+  ctx.fillStyle='rgba(0,0,0,0.05)';
+  ctx.fillRect(0,0,w,h);
+
+  const day=new Date().getDay();                     // 0=Sun,6=Sat
+  ctx.fillStyle=(day===0||day===6)?'#ff9f00':'#0f0'; // orange on weekends
+
+  ctx.font=font+'px monospace';
+  drops.forEach((y,i)=>{
+    const ch=chars[Math.random()*chars.length|0];
+    ctx.fillText(ch,i*font,y*font);
+    drops[i]=y*font>h&&Math.random()>0.975?0:y+1;
+  });
+}
+setInterval(draw,33);
+</script>
+</body>
+</html>
