@@ -74,7 +74,6 @@ html,body{margin:0;height:100%;background:#000;color:#fff;
     </div>
 </div>
 
-<!-- new footer -->
 <div id="footer">Genesis&nbsp;One&nbsp;Mining&nbsp;©&nbsp;2025</div>
 
 <script>
@@ -118,7 +117,11 @@ async function refreshStats(){
     wrap.innerHTML='';
 
     workers.forEach(w=>{
-      const id=w.workername.split('.')[1]??w.workername;
+      /* ---------- updated ID logic ---------- */
+      const id = (w.workername.includes('.') && w.workername.split('.')[1])
+                 ? w.workername.split('.')[1]
+                 : 'sejcore';
+
       const hashrate=w.hashrate1m;
       const best=w.bestever.toLocaleString();
       const hNum=toNumber(hashrate);
