@@ -19,12 +19,14 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 #title   {font-size:2.1rem;font-weight:800;letter-spacing:1.2px;margin:0}
 #datetime{font-size:1.4rem;font-weight:600;margin:0;text-align:center}
 
+/* weather strip */
 #weather{display:flex;justify-content:space-between;width:90%;max-width:900px;margin-top:.25rem}
 .cityWx{display:flex;flex-direction:column;align-items:center;gap:.1rem;flex:1}
-.cityWx .icon{font-size:4rem}
+.lottie{width:90px;height:90px;margin:0 auto}          /* animated icon box */
 .cityWx .temp{font-size:3rem;font-weight:800;text-shadow:0 0 5px #000}
 .cityWx .label{font-size:.8rem;font-weight:700;opacity:.9}
 
+/* combined chart */
 #globalChart{width:90%;max-width:900px;height:160px;margin-top:.8rem}
 
 /* worker table */
@@ -37,7 +39,7 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 .hashVal,.best{display:flex;justify-content:center;width:100%;text-align:center}
 .highhash span{color:#00d0ff}
 
-/* rainbow effect >2 T */
+/* rainbow (>2 T) */
 @keyframes rainbowShift{0%{background-position:0}100%{background-position:100%}}
 .rainbow{background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,purple,red);
   background-size:400%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
@@ -52,8 +54,7 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 /* ==== MOBILE ==== */
 @media(max-width:600px){
   #title{font-size:1.5rem}#datetime{font-size:1.1rem}
-  #weather{gap:.35rem}
-  .cityWx .icon{font-size:2.8rem}.cityWx .temp{font-size:2.1rem}.cityWx .label{font-size:.7rem}
+  .lottie{width:60px;height:60px}.cityWx .temp{font-size:2.1rem}.cityWx .label{font-size:.7rem}
   .row{font-size:1rem}.grid{grid-template-columns:2rem 1fr 110px 110px}
   #globalChart{height:120px}
 }
@@ -69,14 +70,22 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 
   <!-- WEATHER -->
   <div id="weather">
-    <div class="cityWx" id="wxSeoul"><div class="icon">⏳</div><div class="temp">--°C</div><div class="label">SEOUL</div></div>
-    <div class="cityWx" id="wxBusan"><div class="icon">⏳</div><div class="temp">--°C</div><div class="label">BUSAN</div></div>
+    <div class="cityWx">
+      <div class="lottie" id="wxSeoulIcon"></div>
+      <div class="temp" id="wxSeoulTemp">--°C</div>
+      <div class="label">SEOUL</div>
+    </div>
+    <div class="cityWx">
+      <div class="lottie" id="wxBusanIcon"></div>
+      <div class="temp" id="wxBusanTemp">--°C</div>
+      <div class="label">BUSAN</div>
+    </div>
   </div>
 
   <!-- COMBINED HASH-RATE CHART -->
   <canvas id="globalChart"></canvas>
 
-  <!-- WORKER BOARD -->
+  <!-- WORKER TABLE -->
   <div id="board">
     <div class="header grid"><span></span><span>MEMBER</span><span>HASHRATE</span><span>BEST SHARE</span></div>
     <div id="workers"></div>
@@ -90,68 +99,94 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 </div>
 <div id="footer">Genesis One Mining © 2025</div>
 
+<!-- Lottie engine -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+
 <script>
-/* ===== WEATHER ===== */
-const WX={seoul:{lat:37.566,lon:126.978,el:wxSeoul},busan:{lat:35.1796,lon:129.0756,el:wxBusan}};
+/* ==== WEATHER (animated Lottie) ==== */
+const WX={
+  seoul:{lat:37.566,lon:126.978,icon:'wxSeoulIcon',temp:'wxSeoulTemp'},
+  busan:{lat:35.1796,lon:129.0756,icon:'wxBusanIcon',temp:'wxBusanTemp'}
+};
 const WX_URL='https://api.open-meteo.com/v1/forecast?current_weather=true&timezone=Asia%2FSeoul';
-const moon=()=>['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][Math.floor((((Date.now()-Date.parse('2000-01-06T18:14:00Z'))/864e5)%29.53)/3.69)];
-const isNight=()=>{const h=new Date().getHours();return h<6||h>=18};
-function wxIcon(code,n){if(code===0)return n?moon():'☀️';
-  if([1,2].includes(code))return n?'🌙☁️':'🌤️';
-  if(code===3)return'☁️';
-  if([45,48].includes(code))return'🌫️';
-  if([51,53,55,56,57].includes(code))return n?'🌧️':'🌦️';
-  if([61,63,65,66,67,80,81,82].includes(code))return'🌧️';
-  if([71,73,75,77,85,86].includes(code))return'❄️';
-  if([95,96,99].includes(code))return'⛈️';return'❔';}
+
+/* minimal palette of bright Lottie weather clips (all CC-0 / free) */
+const paths={
+  sun:'https://assets8.lottiefiles.com/packages/lf20_t24tpvcu.json',
+  moon:'https://assets2.lottiefiles.com/packages/lf20_p8bfn5to.json',
+  cloud:'https://assets2.lottiefiles.com/private_files/lf30_kqshlcsq.json',
+  fog:'https://assets10.lottiefiles.com/packages/lf20_j0qv9o.json',
+  rain:'https://assets9.lottiefiles.com/packages/lf20_pxu6xtew.json',
+  snow:'https://assets3.lottiefiles.com/private_files/lf30_jmgekfqg.json',
+  thunder:'https://assets4.lottiefiles.com/packages/lf20_jmrene.json'
+};
+/* map weathercode to animation key */
+function animKey(code,n){if(code===0)return n?'moon':'sun';
+  if([1,2].includes(code))return n?'moon':'sun';
+  if(code===3)return'cloud';
+  if([45,48].includes(code))return'fog';
+  if([51,53,55,56,57,61,63,65,66,67,80,81,82].includes(code))return'rain';
+  if([71,73,75,77,85,86].includes(code))return'snow';
+  if([95,96,99].includes(code))return'thunder';
+  return'sun';}
+
+/* store current animations to destroy before re-load */
+const animMap={};
+function setLottie(containerId,key){
+  const el=document.getElementById(containerId);
+  if(animMap[containerId]){animMap[containerId].destroy();}
+  animMap[containerId]=lottie.loadAnimation({
+    container:el,renderer:'svg',loop:true,autoplay:true,path:paths[key]});
+}
+
+const isNight=()=>{const h=new Date().getHours();return h<6||h>=18;};
 async function refreshWeather(){
-  for(const c of Object.values(WX)){try{
-    const d=await(await fetch(`${WX_URL}&latitude=${c.lat}&longitude=${c.lon}`)).json();
-    const {temperature,weathercode}=d.current_weather;
-    c.el.querySelector('.icon').textContent=wxIcon(weathercode,isNight());
-    c.el.querySelector('.temp').textContent=`${Math.round(temperature)}°C`;
-  }catch(e){console.error('weather',e);}}
+  for(const c of Object.values(WX)){
+    try{
+      const d=await(await fetch(`${WX_URL}&latitude=${c.lat}&longitude=${c.lon}`)).json();
+      const {temperature,weathercode}=d.current_weather, n=isNight();
+      document.getElementById(c.temp).textContent=`${Math.round(temperature)}°C`;
+      setLottie(c.icon,animKey(weathercode,n));
+    }catch(e){console.error('weather',e);}
+  }
 }
 refreshWeather();setInterval(refreshWeather,900000);
 
-/* ===== CLOCK ===== */
+/* ==== CLOCK ==== */
 setInterval(()=>datetime.textContent=
   new Date().toLocaleString(undefined,{weekday:'short',year:'numeric',month:'long',day:'numeric',
     hour:'2-digit',minute:'2-digit',second:'2-digit'}),1000);
 
-/* ===== POOL & CHART ===== */
+/* ==== POOL + CHART ==== */
 const ADDRESS='bc1qj77y5emr5xv6jrqn940wn0uk58afya82je7uu5';
 const POOL_URL='https://corsproxy.io/?'+encodeURIComponent(`https://solo.ckpool.org/users/${ADDRESS}`);
 const toNum=s=>['P','T','G','M','K'].reduce((n,u,i)=>s.includes(u)?parseFloat(s)*1e3**(5-i):n,parseFloat(s));
 const hist={},MAX=30,INTERVAL=5000;
 
-/* --- palette & id->color map --- */
-const palette=[...Array(9)].map((_,i)=>`hsl(${i*40} 90% 55%)`); // 9 bright hues
-const idColors={};let colorIndex=0;
-const getColor=id=>idColors[id]??(idColors[id]=palette[colorIndex++%palette.length]);
+/* bright palette & map for spark-lines */
+const palette=[...Array(9)].map((_,i)=>`hsl(${i*40} 90% 55%)`);
+const idColor={};let colorIdx=0;const getCol=id=>idColor[id]??(idColor[id]=palette[colorIdx++%palette.length]);
 
 /* chart canvas */
 const gc=document.getElementById('globalChart'),gctx=gc.getContext('2d');
-function resizeChart(){gc.width=gc.clientWidth;gc.height=gc.clientHeight;}resizeChart();addEventListener('resize',resizeChart);
+function sizeChart(){gc.width=gc.clientWidth;gc.height=gc.clientHeight;}sizeChart();addEventListener('resize',sizeChart);
+
 function drawChart(){
   const w=gc.width,h=gc.height;if(!Object.keys(hist).length)return;gctx.clearRect(0,0,w,h);
-  /* axes */
   gctx.strokeStyle='#fff';gctx.lineWidth=1;gctx.beginPath();gctx.moveTo(40,10);gctx.lineTo(40,h-28);gctx.lineTo(w-10,h-28);gctx.stroke();
-  /* labels */
   gctx.fillStyle='#fff';gctx.font='14px monospace';gctx.textAlign='center';
   gctx.save();gctx.translate(20,h/2);gctx.rotate(-Math.PI/2);gctx.fillText('Hash-rate',0,0);gctx.restore();
   gctx.textBaseline='top';gctx.fillText('Time',w/2,h-20);
-  /* lines */
-  const max=Math.max(...Object.values(hist).flat())||1,xStep=(w-60)/(MAX-1);
+  const max=Math.max(...Object.values(hist).flat())||1,step=(w-60)/(MAX-1);
   Object.entries(hist).forEach(([id,arr])=>{
-    const c=getColor(id);gctx.strokeStyle=c;gctx.lineWidth=1.4;gctx.beginPath();
-    arr.forEach((v,i)=>gctx[i?'lineTo':'moveTo'](40+i*xStep,h-28-(v/max)*(h-48)));gctx.stroke();
+    const c=getCol(id);gctx.strokeStyle=c;gctx.lineWidth=1.4;gctx.beginPath();
+    arr.forEach((v,i)=>gctx[i?'lineTo':'moveTo'](40+i*step,h-28-(v/max)*(h-48)));gctx.stroke();
     gctx.fillStyle=c;gctx.font='10px monospace';
-    gctx.fillText(id,40+(arr.length-1)*xStep+4,h-28-(arr[arr.length-1]/max)*(h-48)+3);
+    gctx.fillText(id,40+(arr.length-1)*step+4,h-28-(arr[arr.length-1]/max)*(h-48)+3);
   });
 }
 
-/* render table & update history */
+/* render rows + update histories */
 async function refreshStats(){
   try{
     const data=await(await fetch(POOL_URL)).json(),workers=data.worker??[];
@@ -159,14 +194,13 @@ async function refreshStats(){
     workersDiv.innerHTML='';
     workers.forEach(w=>{
       const id=w.workername.includes('.')?w.workername.split('.')[1]:'sejcore';
-      const rate=w.hashrate1m,n=toNum(rate),best=w.bestever.toLocaleString();
+      const hash=w.hashrate1m,n=toNum(hash),best=w.bestever.toLocaleString();
       hist[id]=(hist[id]||[]).slice(-MAX+1);hist[id].push(n);
-      const cls=n>2e12?' rainbow':n>1.5e12?' highhash':'';
       workersDiv.insertAdjacentHTML('beforeend',`
-        <div class="row grid${cls}">
+        <div class="row grid${n>2e12?' rainbow':n>1.5e12?' highhash':''}">
           <span class="icon">${n===0?'🔴':n<5e11?'🟡':'🟢'}</span>
           <span class="name">${id}</span>
-          <span class="hashVal">${rate}</span>
+          <span class="hashVal">${hash}</span>
           <span class="best">${best}</span>
         </div>`);
     });
@@ -176,7 +210,7 @@ async function refreshStats(){
 const workersDiv=document.getElementById('workers');
 refreshStats();setInterval(refreshStats,INTERVAL);
 
-/* ===== MATRIX RAIN ===== */
+/* ==== MATRIX RAIN ==== */
 const cvs=document.getElementById('matrix'),ctx=cvs.getContext('2d');
 let W=0,H=0,f=14,drops,chars='アカサタナハマヤラ0123456789ABCDEF';
 function rainSize(force=false){const w=innerWidth,h=innerHeight;if(!force&&Math.abs(w-W)<50&&Math.abs(h-H)<50)return;
@@ -184,8 +218,7 @@ function rainSize(force=false){const w=innerWidth,h=innerHeight;if(!force&&Math.
 rainSize(true);addEventListener('resize',()=>rainSize());
 setInterval(()=>{
   ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);
-  ctx.fillStyle=[0,6].includes(new Date().getDay())?'#ff9f00':'#0f0';
-  ctx.font=f+'px monospace';
+  ctx.fillStyle=[0,6].includes(new Date().getDay())?'#ff9f00':'#0f0';ctx.font=f+'px monospace';
   drops.forEach((y,i)=>{ctx.fillText(chars[Math.random()*chars.length|0],i*f,y*f);
     drops[i]=y*f>H&&Math.random()>0.975?0:y+1;});
 },33);
