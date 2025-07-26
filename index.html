@@ -25,7 +25,6 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 .cityWx .temp{font-size:3rem;font-weight:800;text-shadow:0 0 5px #000}
 .cityWx .label{font-size:.8rem;font-weight:700;opacity:.9}
 
-/* combined chart */
 #globalChart{width:90%;max-width:900px;height:160px;margin-top:.8rem}
 
 /* worker table */
@@ -39,12 +38,12 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 .highhash span{color:#00d0ff}
 
 /* rainbow effect >2 T */
-@keyframes rainbowShift{0%{background-position:0%}100%{background-position:100%}}
+@keyframes rainbowShift{0%{background-position:0}100%{background-position:100%}}
 .rainbow{background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,purple,red);
   background-size:400%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;
   animation:rainbowShift 4s linear infinite}
 
-/* nav + footer */
+/* nav & footer */
 #navlinks{position:fixed;bottom:34px;left:0;right:0;text-align:center;font-size:1rem;font-weight:700;z-index:1}
 #navlinks a{color:#fff;text-decoration:none;margin:0 1.5rem}
 #navlinks a:hover{text-shadow:0 0 6px #fff}
@@ -92,7 +91,7 @@ html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,
 <div id="footer">Genesis One Mining © 2025</div>
 
 <script>
-/* ===== WEATHER (Seoul & Busan) ===== */
+/* ===== WEATHER ===== */
 const WX={seoul:{lat:37.566,lon:126.978,el:wxSeoul},busan:{lat:35.1796,lon:129.0756,el:wxBusan}};
 const WX_URL='https://api.open-meteo.com/v1/forecast?current_weather=true&timezone=Asia%2FSeoul';
 const moon=()=>['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'][Math.floor((((Date.now()-Date.parse('2000-01-06T18:14:00Z'))/864e5)%29.53)/3.69)];
@@ -121,15 +120,19 @@ setInterval(()=>datetime.textContent=
     hour:'2-digit',minute:'2-digit',second:'2-digit'}),1000);
 
 /* ===== POOL & CHART ===== */
-const ADDRESS='bc1qj77y5emr5xv6jrqn940wn0uk58afya82je7uu5'; /* BETA address */
+const ADDRESS='bc1qj77y5emr5xv6jrqn940wn0uk58afya82je7uu5';
 const POOL_URL='https://corsproxy.io/?'+encodeURIComponent(`https://solo.ckpool.org/users/${ADDRESS}`);
 const toNum=s=>['P','T','G','M','K'].reduce((n,u,i)=>s.includes(u)?parseFloat(s)*1e3**(5-i):n,parseFloat(s));
 const hist={},MAX=30,INTERVAL=5000;
 
+/* --- palette & id->color map --- */
+const palette=[...Array(9)].map((_,i)=>`hsl(${i*40} 90% 55%)`); // 9 bright hues
+const idColors={};let colorIndex=0;
+const getColor=id=>idColors[id]??(idColors[id]=palette[colorIndex++%palette.length]);
+
 /* chart canvas */
 const gc=document.getElementById('globalChart'),gctx=gc.getContext('2d');
-function sizeChart(){gc.width=gc.clientWidth;gc.height=gc.clientHeight;}sizeChart();addEventListener('resize',sizeChart);
-const hashCol=id=>`hsl(${[...id].reduce((h,ch)=>ch.charCodeAt(0)+((h<<5)-h),0)%360} 70% 60%)`;
+function resizeChart(){gc.width=gc.clientWidth;gc.height=gc.clientHeight;}resizeChart();addEventListener('resize',resizeChart);
 function drawChart(){
   const w=gc.width,h=gc.height;if(!Object.keys(hist).length)return;gctx.clearRect(0,0,w,h);
   /* axes */
@@ -141,14 +144,14 @@ function drawChart(){
   /* lines */
   const max=Math.max(...Object.values(hist).flat())||1,xStep=(w-60)/(MAX-1);
   Object.entries(hist).forEach(([id,arr])=>{
-    const c=hashCol(id);gctx.strokeStyle=c;gctx.lineWidth=1.4;gctx.beginPath();
+    const c=getColor(id);gctx.strokeStyle=c;gctx.lineWidth=1.4;gctx.beginPath();
     arr.forEach((v,i)=>gctx[i?'lineTo':'moveTo'](40+i*xStep,h-28-(v/max)*(h-48)));gctx.stroke();
     gctx.fillStyle=c;gctx.font='10px monospace';
     gctx.fillText(id,40+(arr.length-1)*xStep+4,h-28-(arr[arr.length-1]/max)*(h-48)+3);
   });
 }
 
-/* render table & update histories */
+/* render table & update history */
 async function refreshStats(){
   try{
     const data=await(await fetch(POOL_URL)).json(),workers=data.worker??[];
@@ -181,7 +184,8 @@ function rainSize(force=false){const w=innerWidth,h=innerHeight;if(!force&&Math.
 rainSize(true);addEventListener('resize',()=>rainSize());
 setInterval(()=>{
   ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);
-  ctx.fillStyle=[0,6].includes(new Date().getDay())?'#ff9f00':'#0f0';ctx.font=f+'px monospace';
+  ctx.fillStyle=[0,6].includes(new Date().getDay())?'#ff9f00':'#0f0';
+  ctx.font=f+'px monospace';
   drops.forEach((y,i)=>{ctx.fillText(chars[Math.random()*chars.length|0],i*f,y*f);
     drops[i]=y*f>H&&Math.random()>0.975?0:y+1;});
 },33);
