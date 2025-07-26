@@ -5,32 +5,20 @@
 <title>Genesis One Swarm BETA</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
-/* ===== GLOBAL DARK THEME ===== */
-html,body{margin:0;height:100%;background:#000;color:#fff;
-          font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
+/* ------------- (all the exact same CSS as before) ------------- */
+/* Global, matrix, layout, glow, rainbow, key-frames, mobile tweaks */
+html,body{margin:0;height:100%;background:#000;color:#fff;font-family:system-ui,Segoe UI,Roboto,Arial,sans-serif}
 *{box-sizing:border-box}
-
-/* ===== MATRIX BACKDROP ===== */
 #matrix{position:fixed;inset:0;z-index:0;background:#000;pointer-events:none}
-
-/* ===== PAGE STACK ===== */
-.wrapper{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
-         gap:1rem;min-height:100vh;padding:1rem 0 80px}
+.wrapper{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:1rem;min-height:100vh;padding:1rem 0 80px}
 #title{font-size:2.1rem;font-weight:800;letter-spacing:1.2px;margin:0}
 #datetime{font-size:1.4rem;font-weight:600;margin:0;text-align:center}
-
-/* ===== WEATHER CARDS ===== */
 #weather{display:flex;justify-content:space-between;width:90%;max-width:900px;margin-top:.25rem}
 .cityWx{display:flex;flex-direction:column;align-items:center;gap:.1rem;flex:1}
-.svgIcon{width:90px;height:90px}
-.svgIcon svg{width:100%;height:100%}
+.svgIcon{width:90px;height:90px}.svgIcon svg{width:100%;height:100%}
 .cityWx .temp{font-size:3rem;font-weight:800;text-shadow:0 0 5px #000}
 .cityWx .label{font-size:.8rem;font-weight:700;opacity:.9}
-
-/* ===== COMBINED CHART ===== */
 #globalChart{width:90%;max-width:900px;height:160px;margin-top:.8rem}
-
-/* ===== WORKER TABLE ===== */
 #board{display:flex;flex-direction:column;gap:1.1rem;width:90%;max-width:900px}
 .grid{display:grid;grid-template-columns:2.5rem 1fr 170px 1fr;align-items:center;column-gap:1rem}
 .header{font-size:1.05rem;font-weight:600;opacity:.75;text-shadow:0 0 4px #000;text-align:center}
@@ -38,45 +26,23 @@ html,body{margin:0;height:100%;background:#000;color:#fff;
 .row span{text-shadow:0 0 5px #000}
 .icon{display:flex;justify-content:center;animation:glow 2s ease-in-out infinite}
 .hashVal,.best{display:flex;justify-content:center;width:100%;text-align:center}
+@keyframes glow{0%{text-shadow:0 0 2px currentColor}50%{text-shadow:0 0 8px currentColor}100%{text-shadow:0 0 2px currentColor}}
 .highhash span:not(.icon){color:#00d0ff}
-
-/* ===== STATUS CIRCLE GLOW ===== */
-@keyframes glow{
-  0%{text-shadow:0 0 2px currentColor}
-  50%{text-shadow:0 0 8px currentColor}
-  100%{text-shadow:0 0 2px currentColor}
-}
-
-/* ===== RAINBOW SHIMMER FOR >2T ===== */
 @keyframes rainbowShift{0%{background-position:0}100%{background-position:100%}}
-.rainbow span:not(.icon){
-  background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,purple,red);
-  background-size:400%;
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-  animation:rainbowShift 4s linear infinite;
-}
-
-/* ===== SVG ANIMATION KEYFRAMES ===== */
+.rainbow span:not(.icon){background:linear-gradient(90deg,red,orange,yellow,green,cyan,blue,purple,red);background-size:400%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:rainbowShift 4s linear infinite}
 @keyframes rotate360{to{transform:rotate(360deg)}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 @keyframes fall{0%{transform:translateY(0);opacity:1}100%{transform:translateY(10px);opacity:0}}
-
 .sunIcon{animation:rotate360 12s linear infinite;transform-origin:50% 50%}
 .cloudIcon,.moonIcon,.fogIcon,.rainIcon,.snowIcon,.thunderIcon{animation:bob 5s ease-in-out infinite}
 .rainIcon .drop,.snowIcon circle.flake{animation:fall .8s linear infinite}
 .rainIcon .drop:nth-child(2),.snowIcon circle.flake:nth-child(2){animation-delay:.25s}
 .rainIcon .drop:nth-child(3),.snowIcon circle.flake:nth-child(3){animation-delay:.5s}
 .thunderFlash{animation:fall .6s ease-in-out infinite}
-
-/* ===== NAV & FOOTER ===== */
 #navlinks{position:fixed;bottom:34px;left:0;right:0;text-align:center;font-size:1rem;font-weight:700;z-index:1}
 #navlinks a{color:#fff;text-decoration:none;margin:0 1.5rem}
 #navlinks a:hover{text-shadow:0 0 6px #fff}
-#footer{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:.8rem;
-        opacity:.8;text-shadow:0 0 4px #000;z-index:1}
-
-/* ===== MOBILE ===== */
+#footer{position:fixed;bottom:10px;left:0;right:0;text-align:center;font-size:.8rem;opacity:.8;text-shadow:0 0 4px #000;z-index:1}
 @media(max-width:600px){
   #title{font-size:1.5rem}#datetime{font-size:1.1rem}
   .svgIcon{width:60px;height:60px}.cityWx .temp{font-size:2.1rem}.cityWx .label{font-size:.7rem}
@@ -107,17 +73,17 @@ html,body{margin:0;height:100%;background:#000;color:#fff;
     </div>
   </div>
 
-  <!-- HASH-RATE CHART -->
+  <!-- CHART -->
   <canvas id="globalChart"></canvas>
 
-  <!-- WORKERS -->
+  <!-- TABLE -->
   <div id="board">
     <div class="header grid"><span></span><span>MEMBER</span><span>HASHRATE</span><span>BEST SHARE</span></div>
     <div id="workers"></div>
   </div>
 </div>
 
-<!-- NAV & COPYRIGHT -->
+<!-- NAV & FOOTER -->
 <div id="navlinks">
   <a href="https://genesisoneco.github.io/alpha-mining">Swarm ALPHA</a>
   <a href="https://genesisoneco.github.io/beta-mining">Swarm BETA</a>
@@ -125,7 +91,7 @@ html,body{margin:0;height:100%;background:#000;color:#fff;
 <div id="footer">Genesis One Mining © 2025</div>
 
 <script>
-/* ===== 1. INLINE SVG ICON DEFINITIONS ===== */
+/* ---------- 1. SVG ICONS ---------- */
 const svgCloud=`
 <svg viewBox="0 0 64 64" class="cloudIcon">
   <ellipse cx="32" cy="36" rx="18" ry="12" fill="#C9D6DF"/>
@@ -133,61 +99,41 @@ const svgCloud=`
   <ellipse cx="42" cy="32" rx="12" ry="10" fill="#C9D6DF"/>
 </svg>`;
 const SVG={
-  sun:`<svg viewBox="0 0 64 64" class="sunIcon">
-        <circle cx="32" cy="32" r="12" fill="#FFD93B"/>
-        <g stroke="#FFD93B" stroke-width="4" stroke-linecap="round">
-          <line x1="32" y1="4"  x2="32" y2="14"/>
-          <line x1="32" y1="50" x2="32" y2="60"/>
-          <line x1="4"  y1="32" x2="14" y2="32"/>
-          <line x1="50" y1="32" x2="60" y2="32"/>
-          <line x1="12" y1="12" x2="19" y2="19"/>
-          <line x1="45" y1="45" x2="52" y2="52"/>
-          <line x1="12" y1="52" x2="19" y2="45"/>
-          <line x1="45" y1="19" x2="52" y2="12"/>
-        </g>
-      </svg>`,
-  moon:`<svg viewBox="0 0 64 64" class="moonIcon">
-          <path d="M42 32a22 22 0 0 1-22 22 22 22 0 0 0 0-44 22 22 0 0 1 22 22z" fill="#F4E3A5"/>
-        </svg>`,
+  sun:`<svg viewBox="0 0 64 64" class="sunIcon"><circle cx="32" cy="32" r="12" fill="#FFD93B"/>
+    <g stroke="#FFD93B" stroke-width="4" stroke-linecap="round">
+    <line x1="32" y1="4"  x2="32" y2="14"/><line x1="32" y1="50" x2="32" y2="60"/>
+    <line x1="4"  y1="32" x2="14" y2="32"/><line x1="50" y1="32" x2="60" y2="32"/>
+    <line x1="12" y1="12" x2="19" y2="19"/><line x1="45" y1="45" x2="52" y2="52"/>
+    <line x1="12" y1="52" x2="19" y2="45"/><line x1="45" y1="19" x2="52" y2="12"/></g></svg>`,
+  moon:`<svg viewBox="0 0 64 64" class="moonIcon"><path d="M42 32a22 22 0 0 1-22 22 22 22 0 0 0 0-44 22 22 0 0 1 22 22z" fill="#F4E3A5"/></svg>`,
   cloud:svgCloud,
-  fog:`<svg viewBox="0 0 64 64" class="fogIcon">
-         ${svgCloud.replace('class="cloudIcon"','')}
-         <g stroke="#999" stroke-width="4" stroke-linecap="round">
-           <line x1="16" y1="48" x2="48" y2="48"/>
-           <line x1="12" y1="56" x2="52" y2="56"/>
-         </g>
-       </svg>`,
-  rain:`<svg viewBox="0 0 64 64" class="rainIcon">
-          ${svgCloud.replace('class="cloudIcon"','')}
-          <g fill="#00BFFF">
-            <circle class="drop" cx="24" cy="46" r="3"/>
-            <circle class="drop" cx="32" cy="46" r="3"/>
-            <circle class="drop" cx="40" cy="46" r="3"/>
-          </g>
-        </svg>`,
-  snow:`<svg viewBox="0 0 64 64" class="snowIcon">
-          ${svgCloud.replace('class="cloudIcon"','')}
-          <g fill="#fff">
-            <circle class="flake" cx="24" cy="46" r="3"/>
-            <circle class="flake" cx="32" cy="46" r="3"/>
-            <circle class="flake" cx="40" cy="46" r="3"/>
-          </g>
-        </svg>`,
-  thunder:`<svg viewBox="0 0 64 64" class="thunderIcon">
-             ${svgCloud.replace('class="cloudIcon"','')}
-             <polygon class="thunderFlash" points="30,44 38,44 34,56" fill="#FFDA2D"/>
-           </svg>`
+  fog:`<svg viewBox="0 0 64 64" class="fogIcon">${svgCloud}
+        <g stroke="#999" stroke-width="4" stroke-linecap="round">
+          <line x1="16" y1="48" x2="48" y2="48"/><line x1="12" y1="56" x2="52" y2="56"/>
+        </g></svg>`,
+  rain:`<svg viewBox="0 0 64 64" class="rainIcon">${svgCloud}
+        <g fill="#00BFFF">
+          <circle class="drop" cx="24" cy="46" r="3"/>
+          <circle class="drop" cx="32" cy="46" r="3"/>
+          <circle class="drop" cx="40" cy="46" r="3"/>
+        </g></svg>`,
+  snow:`<svg viewBox="0 0 64 64" class="snowIcon">${svgCloud}
+        <g fill="#FFF">
+          <circle class="flake" cx="24" cy="46" r="3"/>
+          <circle class="flake" cx="32" cy="46" r="3"/>
+          <circle class="flake" cx="40" cy="46" r="3"/>
+        </g></svg>`,
+  thunder:`<svg viewBox="0 0 64 64" class="thunderIcon">${svgCloud}
+           <polygon class="thunderFlash" points="30,44 38,44 34,56" fill="#FFDA2D"/></svg>`
 };
 const emojiFallback={sun:'☀️',moon:'🌙',cloud:'☁️',fog:'🌫️',rain:'🌧️',snow:'❄️',thunder:'⛈️'};
 
-/* ===== 2. WEATHER FETCH & RENDER ===== */
-const WX={
-  seoul:{lat:37.566,lon:126.978,icon:'wxSeoulIcon',temp:'wxSeoulTemp',lastTemp:'--'},
-  busan:{lat:35.1796,lon:129.0756,icon:'wxBusanIcon',temp:'wxBusanTemp',lastTemp:'--'}
-};
+/* ---------- 2. WEATHER ---------- */
+const WX={seoul:{lat:37.566,lon:126.978,icon:'wxSeoulIcon',temp:'wxSeoulTemp',last:'--'},
+          busan:{lat:35.1796,lon:129.0756,icon:'wxBusanIcon',temp:'wxBusanTemp',last:'--'}};
 const WX_URL='https://api.open-meteo.com/v1/forecast?current_weather=true&timezone=Asia%2FSeoul';
 const isNight=()=>{const h=new Date().getHours();return h<6||h>=18};
-function iconKey(code,n){if(code===0)return n?'moon':'sun';
+function keyBy(code,n){if(code===0)return n?'moon':'sun';
   if([1,2].includes(code))return n?'moon':'sun';
   if(code===3)return'cloud';
   if([45,48].includes(code))return'fog';
@@ -199,87 +145,67 @@ async function refreshWeather(){
   for(const loc of Object.values(WX)){
     try{
       const j=await(await fetch(`${WX_URL}&latitude=${loc.lat}&longitude=${loc.lon}`)).json();
-      if(!j.current_weather)throw'no current_weather';
-      const {temperature,weathercode}=j.current_weather,n=isNight(),key=iconKey(weathercode,n);
-      loc.lastTemp=Math.round(temperature);
-      document.getElementById(loc.temp).textContent=`${loc.lastTemp}°C`;
-      document.getElementById(loc.icon).innerHTML=SVG[key];
-    }catch(err){
-      console.error('weather',err);
-      document.getElementById(loc.temp).textContent=`${loc.lastTemp}°C`;
-      const fallback=`<span style="font-size:64px">${emojiFallback.cloud}</span>`;
-      document.getElementById(loc.icon).innerHTML=fallback;
+      if(!j.current_weather)throw'no data';
+      const {temperature,weathercode}=j.current_weather,k=keyBy(weathercode,isNight());
+      loc.last=Math.round(temperature);document.getElementById(loc.temp).textContent=`${loc.last}°C`;
+      document.getElementById(loc.icon).innerHTML=SVG[k];
+    }catch(e){
+      console.error('weather',e);
+      document.getElementById(loc.temp).textContent=`${loc.last}°C`;
+      document.getElementById(loc.icon).innerHTML=`<span style="font-size:64px">${emojiFallback.cloud}</span>`;
     }
   }
 }
 refreshWeather();setInterval(refreshWeather,900000);
 
-/* ===== 3. CLOCK (always on) ===== */
+/* ---------- 3. CLOCK ---------- */
 setInterval(()=>datetime.textContent=
   new Date().toLocaleString(undefined,{weekday:'short',year:'numeric',month:'long',day:'numeric',
     hour:'2-digit',minute:'2-digit',second:'2-digit'}),1000);
 
-/* ===== 4. CKPOOL FETCH, TABLE, CHART ===== */
+/* ---------- 4. CKPOOL, TABLE, CHART ---------- */
 const ADDRESS='bc1qj77y5emr5xv6jrqn940wn0uk58afya82je7uu5';
-const POOL_URL='https://corsproxy.io/?'+encodeURIComponent(`https://solo.ckpool.org/users/${ADDRESS}`);
+const URL='https://corsproxy.io/?'+encodeURIComponent(`https://solo.ckpool.org/users/${ADDRESS}`);
 const toNum=s=>['P','T','G','M','K'].reduce((n,u,i)=>s.includes(u)?parseFloat(s)*1e3**(5-i):n,parseFloat(s));
-const hist={},MAX=30,REFRESH=5000;
-const palette=[...Array(9)].map((_,i)=>`hsl(${i*40} 90% 55%)`),idColor={},getCol=id=>idColor[id]??(idColor[id]=palette[Object.keys(idColor).length%palette.length]);
-
-/* chart canvas */
+const MAX=30,REFRESH=5000,hist={},palette=[...Array(9)].map((_,i)=>`hsl(${i*40} 90% 55%)`),idCol={},getCol=id=>idCol[id]??(idCol[id]=palette[Object.keys(idCol).length%palette.length]);
 const gc=document.getElementById('globalChart'),gctx=gc.getContext('2d');
 function sizeChart(){gc.width=gc.clientWidth;gc.height=gc.clientHeight;}sizeChart();addEventListener('resize',sizeChart);
-function drawChart(){
+function chart(){
   const w=gc.width,h=gc.height;if(!Object.keys(hist).length)return;gctx.clearRect(0,0,w,h);
-  gctx.strokeStyle='#fff';gctx.lineWidth=1;
-  gctx.beginPath();gctx.moveTo(40,10);gctx.lineTo(40,h-28);gctx.lineTo(w-10,h-28);gctx.stroke();
-  /* labels */
-  gctx.fillStyle='#fff';gctx.font='14px monospace';gctx.textAlign='center';
-  gctx.save();gctx.translate(20,h/2);gctx.rotate(-Math.PI/2);gctx.fillText('Hash-rate',0,0);gctx.restore();
+  gctx.strokeStyle='#fff';gctx.beginPath();gctx.moveTo(40,10);gctx.lineTo(40,h-28);gctx.lineTo(w-10,h-28);gctx.stroke();
+  gctx.fillStyle='#fff';gctx.font='14px monospace';gctx.textAlign='center';gctx.save();gctx.translate(20,h/2);gctx.rotate(-Math.PI/2);gctx.fillText('Hash-rate',0,0);gctx.restore();
   gctx.textBaseline='top';gctx.fillText('Time',w/2,h-20);
-  const max=Math.max(...Object.values(hist).flat())||1,step=(w-60)/(MAX-1);
-  for(const [id,arr] of Object.entries(hist)){
-    const c=getCol(id);gctx.strokeStyle=c;gctx.lineWidth=1.4;gctx.beginPath();
-    arr.forEach((v,i)=>gctx[i?'lineTo':'moveTo'](40+i*step,h-28-(v/max)*(h-48)));gctx.stroke();
-    gctx.fillStyle=c;gctx.font='10px monospace';
-    gctx.fillText(id,40+(arr.length-1)*step+4,h-28-(arr[arr.length-1]/max)*(h-48)+3);
+  const m=Math.max(...Object.values(hist).flat())||1,s=(w-60)/(MAX-1);
+  for(const [id,a] of Object.entries(hist)){
+    const c=getCol(id);gctx.strokeStyle=c;gctx.beginPath();a.forEach((v,i)=>gctx[i?'lineTo':'moveTo'](40+i*s,h-28-(v/m)*(h-48)));gctx.stroke();
+    gctx.fillStyle=c;gctx.font='10px monospace';gctx.fillText(id,40+(a.length-1)*s+4,h-28-(a[a.length-1]/m)*(h-48)+3);
   }
 }
-async function refreshStats(){
+async function stats(){
   try{
-    const data=await(await fetch(POOL_URL)).json(),workers=data.worker??[];
-    workers.sort((a,b)=>b.bestever-a.bestever);
-    workersDiv.innerHTML='';
-    workers.forEach(w=>{
-      const id=w.workername.includes('.')?w.workername.split('.')[1]:'sejcore';
-      const hash=w.hashrate1m,n=toNum(hash),best=w.bestever.toLocaleString();
+    const d=await(await fetch(URL)).json(),w=d.worker??[];w.sort((a,b)=>b.bestever-a.bestever);
+    workers.innerHTML='';
+    w.forEach(r=>{
+      const id=r.workername.includes('.')?r.workername.split('.')[1]:'sejcore',h=r.hashrate1m,n=toNum(h),best=r.bestever.toLocaleString();
       hist[id]=(hist[id]||[]).slice(-MAX+1);hist[id].push(n);
-      workersDiv.insertAdjacentHTML('beforeend',`
+      workers.insertAdjacentHTML('beforeend',`
         <div class="row grid${n>2e12?' rainbow':n>1.5e12?' highhash':''}">
           <span class="icon">${n===0?'🔴':n<5e11?'🟡':'🟢'}</span>
           <span class="name">${id}</span>
-          <span class="hashVal">${hash}</span>
+          <span class="hashVal">${h}</span>
           <span class="best">${best}</span>
         </div>`);
-    });
-    drawChart();
-  }catch(e){console.error('ckpool',e);workersDiv.textContent='CKPool error';}
+    });chart();
+  }catch(e){console.error('ckpool',e);workers.textContent='CKPool error';}
 }
-const workersDiv=document.getElementById('workers');
-refreshStats();setInterval(refreshStats,REFRESH);
+stats();setInterval(stats,REFRESH);
 
-/* ===== 5. MATRIX RAIN ===== */
-const cvs=document.getElementById('matrix'),ctx=cvs.getContext('2d');
-let W=0,H=0,f=14,drops,chars='アカサタナハマヤラ0123456789ABCDEF';
-function rainSize(force=false){const w=innerWidth,h=innerHeight;if(!force&&Math.abs(w-W)<50&&Math.abs(h-H)<50)return;
-  W=cvs.width=w;H=cvs.height=h;drops=Array(Math.floor(W/f)).fill(1);}rainSize(true);addEventListener('resize',()=>rainSize());
-setInterval(()=>{
-  ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);
-  ctx.fillStyle=[0,6].includes(new Date().getDay())?'#ff9f00':'#0f0';
-  ctx.font=f+'px monospace';
-  drops.forEach((y,i)=>{ctx.fillText(chars[Math.random()*chars.length|0],i*f,y*f);
-    drops[i]=y*f>H&&Math.random()>0.975?0:y+1;});
-},33);
+/* ---------- 5. MATRIX RAIN ---------- */
+const cvs=document.getElementById('matrix'),ctx=cvs.getContext('2d'),chars='アカサタナハマヤラ0123456789ABCDEF';
+let W=0,H=0,f=14,drops;function rain(force=false){const w=innerWidth,h=innerHeight;if(!force&&Math.abs(w-W)<50&&Math.abs(h-H)<50)return;
+  W=cvs.width=w;H=cvs.height=h;drops=Array(Math.floor(W/f)).fill(1);}rain(true);addEventListener('resize',()=>rain());
+setInterval(()=>{ctx.fillStyle='rgba(0,0,0,0.05)';ctx.fillRect(0,0,W,H);ctx.fillStyle=[0,6].includes(new Date().getDay())?'#ff9f00':'#0f0';ctx.font=f+'px monospace';
+  drops.forEach((y,i)=>{ctx.fillText(chars[Math.random()*chars.length|0],i*f,y*f);drops[i]=y*f>H&&Math.random()>0.975?0:y+1;});},33);
 </script>
 </body>
 </html>
